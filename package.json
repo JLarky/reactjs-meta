@@ -1,25 +1,42 @@
 {
-  "name": "vite-react-typescript-starter",
+  "name": "reactjs-meta",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "fmt": "prettier --write .",
     "build": "tsc && vite build",
+    "postbuild": "yarn copy",
+    "copy": "shx rm -rf dist/{vite.svg,tests} && mv dist dist2 && mkdir dist && mv dist2 ./dist/dist && copyfiles -f package.json README.md LICENSE dist && json -I -f dist/package.json -e \"this.private=false; this.devDependencies=undefined; this.optionalDependencies=undefined; this.scripts=undefined; this.husky=undefined; this.prettier=undefined; this.jest=undefined; this['lint-staged']=undefined;\"",
+    "publish": "yarn build && (cd dist && npm publish)",
     "preview": "vite preview"
   },
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/reactjs-meta.umd.cjs",
+  "module": "./dist/reactjs-meta.js",
+  "exports": {
+    ".": {
+      "import": "./dist/reactjs-meta.js",
+      "require": "./dist/reactjs-meta.umd.cjs"
+    }
+  },
   "dependencies": {
-    "prettier": "^2.7.1",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "vite-plugin-dts": "^1.3.1"
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@types/react": "^18.0.15",
     "@types/react-dom": "^18.0.6",
     "@vitejs/plugin-react": "^2.0.0",
+    "copyfiles": "^2.4.1",
+    "json": "^11.0.0",
+    "prettier": "^2.7.1",
+    "shx": "^0.3.4",
     "typescript": "^4.6.4",
-    "vite": "^3.0.0"
+    "vite": "^3.0.0",
+    "vite-plugin-dts": "^1.3.1"
   }
 }
