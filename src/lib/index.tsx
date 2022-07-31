@@ -4,13 +4,14 @@ import {
   useLayoutEffect,
   useMemo,
   useRef,
+  useState,
 } from "react";
 import { createPortal } from "react-dom";
 
 interface TagDescription {
   tag: string;
   name?: string;
-  ref: { current: HTMLElement | null };
+  setShow: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const cascadingTags = ["title", "meta"];
@@ -43,7 +44,7 @@ function useProviderValue() {
             }
           }
           // unmount previous instance
-          lastVisited?.ref.current?.remove();
+          lastVisited?.setShow(false);
           return index;
         }
         return -1;
@@ -51,20 +52,17 @@ function useProviderValue() {
       removeClientTag: (tag: TagDescription, index: number) => {
         const tagName = getTagType(tag);
 
-        if (tag.ref) {
-          const instances = cascadedTagInstances.current.get(tagName);
-          if (instances) {
-            if (tag.ref.current?.parentNode) {
-              for (let i = index - 1; i >= 0; i--) {
-                if (instances[i] != null) {
-                  document.head.appendChild(instances[i]?.ref.current!);
-                }
-              }
+        const instances = cascadedTagInstances.current.get(tagName);
+        if (instances) {
+          for (let i = index - 1; i >= 0; i--) {
+            if (instances[i] != null) {
+              instances[i]?.setShow(true);
+              break;
             }
-
-            instances[index] = null;
-            cascadedTagInstances.current.set(tagName, instances);
           }
+
+          instances[index] = null;
+          cascadedTagInstances.current.set(tagName, instances);
         }
       },
     }),
@@ -88,11 +86,13 @@ export const MetaTag = (
   tagDescription: TagDescription,
   props: Record<string, any>
 ) => {
+  const [show, setShow] = useState(true);
+  tagDescription.setShow = setShow;
   useHead(tagDescription);
-  return createPortal(
-    <Tag ref={tagDescription.ref} {...props} />,
-    document.head
-  );
+  if (!show) {
+    return null;
+  }
+  return createPortal(<Tag {...props} />, document.head);
 };
 
 export function useHead(tagDesc: TagDescription) {
@@ -120,7 +120,7 @@ export const Title = (
       get name() {
         return props.property;
       },
-      ref: { current: null as null | HTMLElement },
+      setShow: () => {},
     };
   }, [props.property]);
   return MetaTag("title", tagDescription, props);
