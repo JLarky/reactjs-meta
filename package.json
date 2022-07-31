@@ -7,6 +7,7 @@
     "dev": "vite",
     "fmt": "prettier --write .",
     "build": "tsc && vite build",
+    "prepare": "yarn build",
     "postbuild": "yarn copy",
     "copy": "shx rm -rf dist/{vite.svg,tests} && mv dist dist2 && mkdir dist && mv dist2 ./dist/dist && copyfiles -f package.json README.md LICENSE dist && json -I -f dist/package.json -e \"this.private=false; this.devDependencies=undefined; this.optionalDependencies=undefined; this.scripts=undefined; this.husky=undefined; this.prettier=undefined; this.jest=undefined; this['lint-staged']=undefined;\"",
     "publish": "yarn build && (cd dist && npm publish)",
