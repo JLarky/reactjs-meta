@@ -1,36 +1,74 @@
 import { useState } from "react";
 import reactLogo from "./assets/react.svg";
-import { Title } from "./lib";
+import { MetaProvider, Title } from "./lib";
 import "./App.css";
 
+const pages = ["/", "/about", "/dashboard", "/dashboard/extra"] as const;
+type Pages = typeof pages[number];
+
 function App() {
-  const [count, setCount] = useState(0);
+  const hash = location.hash.slice(1) as Pages | undefined;
+  const initialPage = (hash && pages.includes(hash) && hash) || "/";
+  const [page, setPage] = useState(initialPage);
 
   return (
     <div className="App">
-      <Title />
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <MetaProvider>
+        <Title>App wide title</Title>
+        <h1>Testing our component</h1>
+        <nav>
+          <ul>
+            {pages.map((p) => (
+              <li key={p}>
+                <a href={"#" + p} onClick={() => setPage(p)}>
+                  {p === "/" ? "Home" : p.replace(/\//g, " ")}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <TopLevel page={page} />
+      </MetaProvider>
     </div>
   );
 }
+
+let increment = () => {};
+const w = window as typeof window & { t: any };
+w.t = w.t || setInterval(() => increment(), 1000);
+
+const TopLevel = ({ page }: { page: Pages }) => {
+  const [show, setShow] = useState(true);
+  const [count, setCount] = useState(0);
+  increment = () => setCount((c) => c + 1);
+  if (page === "/") {
+    return <div>At Home</div>;
+  }
+  if (page === "/about") {
+    return (
+      <div>
+        <Title>{count}: About title</Title>
+        At Home
+      </div>
+    );
+  }
+  return (
+    <div>
+      {show && <Title>Dashboard</Title>}
+      Dashboard
+      <button onClick={() => setShow(!show)}>Toggle</button>
+      {page === "/dashboard/extra" && <DashboardExtra />}
+    </div>
+  );
+};
+
+const DashboardExtra = () => {
+  return (
+    <div>
+      <Title>Extra Dashboard</Title>
+      Dashboard Extra
+    </div>
+  );
+};
 
 export default App;
